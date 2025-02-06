@@ -1,0 +1,373 @@
+n=int(input('Загальна кількість зошитів:'))
+n1=float(input('Вартість зошитів в лінію:'))
+n2=float(input('Вартість зошита в клітинку:'))
+# S=float(input('Загальна сумма покупки:'))
+y=n1+n2
+if n1+n2:
+    y=(n1+n2)
+    print('Загальна сумма покупки',y)
+
+Миграция - это когда ты подключаешься к базе данных и по созданным таблица создаешь модели. 
+Скафолд - наоборот когда есть база данных. используется в ентети фреймовр она позволяет автоматом создавать классы из базы данных.
+МикроОРМ - это даппер. не может создавать сам классы. ОРМ - это entity framework который сам создает классы которая существует в базе данных
+контриб Даппер - это упрощение даппера
+ОРМ - это работа с базой данных через классы.
+присоединенний - 
+отсоединенный режим - присоединяемся к базе данных если нужно что то сменить
+что такое контриб - доп. библиотека даппера. которая упрощает жизнь программисту и укорачивает код. и взаимодействию с базой данных
+реестр - уникальное хранилище данных вашего компа
+
+JS//////////////////////////////////
+
+CSS селекторы - 
+
+public partial class Form1 : Form
+{
+    private DataTable dataTable = new DataTable();
+    private Database database = new Database();
+
+    private bool dayAndNightTem = true;
+    private Image sunImage = Image.FromFile(@"C:\Charp\project\project\image\sun.png");
+    private Image moonImage = Image.FromFile(@"C:\Charp\project\project\image\moon.png");
+    private Timer timer = new Timer();
+    public Form1()
+    {
+        InitializeComponent();
+        LoadInfo();
+        UpdateQuotes();
+        Time();
+    }
+    private void Time()
+    {
+        timer.Tick += Timer;
+        timer.Start();
+    }
+
+    private void Timer(object sender, EventArgs e)
+    {
+        label7.Text = DateTime.Now.ToString("Время: HH:mm:ss");
+    }
+
+    private void LoadInfo(string words = "")
+    {
+        dataTable = database.LoadQuotes(words);
+        dataGridView1.DataSource = dataTable;
+    }
+
+    private void button1_Click(object sender, EventArgs e)
+    {
+        string quoteText = textBox1.Text;
+        string source = textBox2.Text;
+        DateTime addDate = DateTime.Now;
+
+        if (database.AddQuotes(quoteText, source, addDate))
+        {
+            MessageBox.Show("Цитата успешно добавлена в дневник.");
+            textBox1.Text = ""; 
+            textBox2.Text = "";
+            LoadInfo();
+            UpdateQuotes();
+        }
+        else
+        {
+            MessageBox.Show("Не удалось добавить цитату в дневник.");
+        }
+    }
+
+    private void textBox3_TextChanged(object sender, EventArgs e)
+    {
+        LoadInfo(textBox3.Text.Trim());
+    }
+
+    private void UpdateQuotes()
+    {
+        label1.Text = "Количество цитат: " + dataTable.Rows.Count.ToString();
+    }
+
+    private void button2_Click(object sender, EventArgs e)
+    {
+        if (!int.TryParse(textBox4.Text, out int quoteId))
+        {
+            MessageBox.Show(" Введите число!!!.");
+            return;
+        }else if (quoteId < 0)
+        {
+            MessageBox.Show(" Введите корректный id!!!.");
+            return;
+        }
+
+        if (database.DeleteQuotes(quoteId))
+        {
+            MessageBox.Show("Цитата успешно удалена из дневника.");
+            textBox4.Text = "";
+            LoadInfo();
+            UpdateQuotes();
+        }
+        else
+        {
+            MessageBox.Show("Цитата с указанным id не найдена.");
+        }
+    }
+
+    private void button3_Click(object sender, EventArgs e)
+    {
+        if (dayAndNightTem)
+        {
+            this.BackColor = Color.Gray;
+            button3.Image = moonImage;
+            button1.BackColor = Color.LightGray;
+            button2.BackColor = Color.LightGray;
+            textBox1.BackColor = Color.LightGray;
+            textBox2.BackColor = Color.LightGray;
+            textBox3.BackColor = Color.LightGray;
+            textBox4.BackColor = Color.LightGray;
+            label1.ForeColor = Color.White;
+            label2.ForeColor = Color.White;
+            label3.ForeColor = Color.White;
+            label4.ForeColor = Color.White;
+            label5.ForeColor = Color.White;
+            label6.ForeColor = Color.White;
+            label7.ForeColor = Color.White;
+        }
+        else
+        {
+            this.BackColor = Color.White;
+            button3.Image = sunImage;
+            button1.BackColor = Color.White;
+            button2.BackColor = Color.White;
+            textBox1.BackColor = Color.White;
+            textBox2.BackColor = Color.White;
+            textBox3.BackColor = Color.White;
+            textBox4.BackColor = Color.White;
+            label1.ForeColor = Color.Black;
+            label2.ForeColor = Color.Black;
+            label3.ForeColor = Color.Black;
+            label4.ForeColor = Color.Black;
+            label5.ForeColor = Color.Black;
+            label6.ForeColor = Color.Black;
+            label7.ForeColor = Color.Black;
+        }
+
+        dayAndNightTem = !dayAndNightTem;
+    }
+}
+
+public class Database
+{
+    private string dotSTR2 = "data source=DESKTOP-SA3RDKI\\SQLEXPRESS; database=project; User=DESKTOP-SA3RDKI\\38067; integrated security=TRUE";
+
+    public DataTable LoadQuotes(string keyword)
+    {
+        DataTable dataTable = new DataTable();
+
+        using (SqlConnection connection = new SqlConnection(dotSTR2))
+        {
+            string query = "SELECT * FROM quotes WHERE quote_text LIKE @keyword OR source LIKE @keyword";
+            SqlCommand command = new SqlCommand(query, connection);
+            command.Parameters.AddWithValue("@keyword", "%" + keyword + "%");
+
+            try
+            {
+                connection.Open();
+                SqlDataAdapter adapter = new SqlDataAdapter(command);
+                adapter.Fill(dataTable);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Невозможно загрузить данные: " + ex.Message);
+            }
+        }
+
+        return dataTable;
+    }
+
+    public bool AddQuotes(string quoteText, string source, DateTime addDate)
+    {
+        using (SqlConnection connection = new SqlConnection(dotSTR2))
+        {
+            string query = "INSERT INTO quotes (quote_text, source, add_date) " +
+                           "VALUES (@quoteText, @source, @addDate)";
+
+            SqlCommand command = new SqlCommand(query, connection);
+            command.Parameters.AddWithValue("@quoteText", quoteText);
+            command.Parameters.AddWithValue("@source", source);
+            command.Parameters.AddWithValue("@addDate", addDate);
+
+            try
+            {
+                connection.Open();
+                int rowsAffected = command.ExecuteNonQuery();
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Не удалось добавить цитату в дневник: " + ex.Message);
+                return false;
+            }
+        }
+    }
+
+    public bool DeleteQuotes(int quoteId)
+    {
+        using (SqlConnection connection = new SqlConnection(dotSTR2))
+        {
+            string query = "DELETE FROM quotes WHERE quote_id = @quoteId";
+            SqlCommand command = new SqlCommand(query, connection);
+            command.Parameters.AddWithValue("@quoteId", quoteId);
+
+            try
+            {
+                connection.Open();
+                int rowsAffected = command.ExecuteNonQuery();
+                return rowsAffected > 0;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Не удалось удалить цитату из дневника: " + ex.Message);
+                return false;
+            }
+        }
+    }
+}
+
+    ///lesson 5 ex1
+
+    // var cahngeDiv = document.querySelectorAll('div');
+
+    // cahngeDiv.forEach(function(div)
+    // {
+    //     div.addEventListener('click', function()
+    //     {
+    //         div.style.backgroundColor = 'blue';
+    //     });
+    // });
+
+    ///ex2
+
+    // var zoom = document.getElementsByTagName('img');
+
+    // for(var i = 0; i < zoom.length; i++)
+    // {
+    //     zoom[i].addEventListener('dblclick', function()
+    //     {
+    //         var width = this.offsetWidth;
+    //         var height = this.offsetHeight;
+
+    //         this.style.width = (width * 2) + 'px';
+    //         this.style.height = (height * 2) + 'px';
+    //     })
+    // }
+
+    //ex3 
+    // document.addEventListener('click', function(e) {
+    //     var target = e.target;
+    //     if (target.tagName === 'DIV' || target.tagName === 'H2'|| target.tagName === 'H3' || target.tagName === 'P' || target.tagName === 'A' || target.tagName === 'SPAN' || target.tagName === 'LI' || target.tagName === 'UL') {
+    //         if (target.classList.contains('clicked')) {
+    //             target.parentNode.removeChild(target);
+    //         } else {
+    //             target.style.backgroundColor = 'blue';
+    //             target.classList.add('clicked');
+    //         }
+    //     }
+    // });
+
+
+    ///ex4
+
+    // function rotate(e)
+    // {
+    //     var rotateImage = e.target;
+    //     var rotating = rotateImage.dataset.rotating || 0;
+    //     rotating = (parseInt(rotating)+ 90) % 360;
+    //     rotateImage.style.transform = 'rotate(' + rotating + 'deg)';
+    //     rotateImage.dataset.rotating = rotating;
+    // }
+
+    // var im = document.getElementsByTagName('img');
+    // for(var i = 0; i< im.length; i++)
+    // {
+    //     im[i].addEventListener('click', rotate);
+    // }
+
+    ///ex5
+
+    // var saveClickIm = null;
+
+    // function changeIm(e)
+    // {
+    //     var click = e.target;
+    //     if(saveClickIm === null)
+    //     {
+    //         saveClickIm = click;
+    //     }else if(saveClickIm !== click)
+    //     {
+    //         var src = click.src;
+    //         click.src = saveClickIm.src;
+    //         saveClickIm.src = src;
+    //         saveClickIm = null;
+    //     }
+    // }
+
+    // var im = document.getElementsByTagName('img');
+
+    // for(var i = 0; i < im.length; i++)
+    // {
+    //     im[i].addEventListener('click', changeIm);
+    // }
+
+
+
+    ///ex6
+
+    // var changeText = null;
+
+    // document.addEventListener('mouseover', function(e)
+    // {
+    //     var target = e.target;
+
+    //     if(target.tagName === 'DIV' || target.tagName === 'H1' || target.tagName === 'H2' || target.tagName === 'H3'   || target.tagName === 'P')
+    //     {
+    //         changeText = target;
+    //     }
+    // });
+
+    // document.addEventListener('keydown', function(e)
+    // {
+    //     var n = e.key;
+
+    //     if(changeText && (n === '+' || n === '-'))
+    //     {
+    //         var size = parseInt(changeText.style.fontSize || '15');
+    //         changeText.style.fontSize = (n === '+') ? (size + 1) + 'px' : Math.max(size - 1,1) + 'px';
+    //     }
+    // });
+
+            SPAN - свободный эелемкент форматирования 
+
+    On Tuesday I got up at half past six. I went to bathroom and washed my hands and face and cleaned my teeth. Then i dressed, went to the kitchen and cooked breakfast or my family.
+    At half past seven my  son got up and had breakfast. I had breakfast with my son. My son ate a sandwich and drank a cup of tea. I didn't drink a tea. I drank coffee. After breakfast my son left home for school. I didn't leave home with my son. On Tuesday I didn't work in the morning. I worked in the afternoon. In the evening I was at home. My husband and my son were at home , too. We rested in the evening. My son watched TV, my husband read newspapers and I did some work about house. At about eleven o'clock we went to bed
+
+I don't like my factory
+My friend likes amazing appearings
+my neighbor car hinders me, when I go to school
+My phone to disappeared for my pocket and I got scared
+I saw amusing car last night
+My teacher is boring a little
+If you do this you will get in danger
+it is dangerous in Australia, because there are a lot of spiders
+My family cares about me very much
+My grandmother is very careful when she coockes
+I don't care of myself a lot 
+
+ex 202
+  Boris woke up when it is already light. He looked at his watch. It is a quarter to seven. Quick!. Boris jumped out of bed and ran to the bathroom. He had just time to take a cold shower and drink a glass of tea with delicious sandwiches. He is in a hurry to catch the 8 am train. At the railway station he met three other boys from his group. They all had small backpacks and fishjing rods. In less than an hour they got off the train at a small station near a wood. They walked very quickly and soon find themselves on the shore of a large lake. The boys spent the whole day there finishing, boating and swimming. They returned home late at night, tired but happy
+
+  I relay on my family
+  The road on my street very reliable
+  My uncle fair man
+  -
+  IT its interesting occupation in the world
+  I cut my finger for tin
+  I can't swim snorkel
+  -
+  -
